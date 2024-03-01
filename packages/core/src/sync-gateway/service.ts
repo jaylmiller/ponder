@@ -1,3 +1,4 @@
+import { mkdir, writeFile } from "node:fs/promises";
 import type { Common } from "@/Ponder.js";
 import type { Network } from "@/config/networks.js";
 import type { FactoryCriteria, LogFilterCriteria } from "@/config/sources.js";
@@ -108,6 +109,7 @@ type SyncGatewayEvents = {
 
 type SyncGatewayMetrics = {};
 
+let recordIndex = 0;
 export class SyncGateway extends Emittery<SyncGatewayEvents> {
   private common: Common;
   private syncStore: SyncStore;
@@ -170,7 +172,7 @@ export class SyncGateway extends Emittery<SyncGatewayEvents> {
    * @param options.fromCheckpoint Checkpoint to include events from (exclusive).
    * @param options.toCheckpoint Checkpoint to include events to (inclusive).
    */
-  getEvents(
+  async getEvents(
     arg: {
       fromCheckpoint: Checkpoint;
       toCheckpoint: Checkpoint;
@@ -200,11 +202,31 @@ export class SyncGateway extends Emittery<SyncGatewayEvents> {
         }
     ),
   ) {
-    if (customRpcClient) {
-      return callCustomRpc(arg);
-    }
+    const saveRecord = async (res: any) => {
+      const record = {
+        args: arg,
+        res,
+      };
+      try {
+        await mkdir("records");
+      } catch (e) {}
+      let filename = customRpcClient ? "custom" : "baseline";
+      filename = `${filename}_${recordIndex}`;
+      filename = `records/${filename}`;
+      recordIndex += 1;
+      const toWrite = Buffer.from(JSON.stringify(record));
+      console.log(`writing ${toWrite.length} bytes to ${recordIndex}`);
+      await writeFile(filename, toWrite);
+    };
 
-    return this.syncStore.getLogEvents(arg);
+    if (customRpcClient) {
+      const res = await callCustomRpc(arg);
+      await saveRecord(res);
+      return res;
+    }
+    const res = this.syncStore.getLogEvents(arg);
+    await saveRecord(res);
+    return res;
   }
 
   handleNewHistoricalCheckpoint = (checkpoint: Checkpoint) => {
