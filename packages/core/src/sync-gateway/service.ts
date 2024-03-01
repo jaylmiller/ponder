@@ -224,7 +224,7 @@ export class SyncGateway extends Emittery<SyncGatewayEvents> {
       await saveRecord(res);
       return res;
     }
-    const res = this.syncStore.getLogEvents(arg);
+    const res = await this.syncStore.getLogEvents(arg);
     await saveRecord(res);
     return res;
   }
