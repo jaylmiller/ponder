@@ -3,7 +3,7 @@ import { http } from "viem";
 import { erc20ABI } from "./abis/erc20ABI";
 
 const endBlock = 5_395_000;
-const indexRange = 2_000;
+const indexRange = 10_000;
 const chainId = 11155111; // sepolia
 // const syncToFile = "../../sync1.db";
 const syncToFile = "../../baseline";
