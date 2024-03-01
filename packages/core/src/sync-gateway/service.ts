@@ -2,6 +2,7 @@ import type { Common } from "@/Ponder.js";
 import type { Network } from "@/config/networks.js";
 import type { FactoryCriteria, LogFilterCriteria } from "@/config/sources.js";
 import type { SyncStore } from "@/sync-store/store.js";
+import type { Block, Log, Transaction } from "@/types/eth.js";
 import {
   type Checkpoint,
   checkpointMax,
@@ -10,7 +11,78 @@ import {
   zeroCheckpoint,
 } from "@/utils/checkpoint.js";
 import { Emittery } from "@/utils/emittery.js";
+import axios from "axios";
 import type { Hex } from "viem";
+
+const customrpc = process.env.CUSTOM_RPC;
+
+let customRpcClient = undefined as ReturnType<typeof axios.create> | undefined;
+if (customrpc) {
+  customRpcClient = axios.create({ url: customrpc });
+}
+
+const callCustomRpc = async (
+  args: GetEventsRequest,
+): Promise<
+  {
+    events: {
+      chainId: number;
+      log: Log;
+      block: Block;
+      transaction: Transaction;
+    }[];
+    lastCheckpoint: Checkpoint | undefined;
+  } & (
+    | {
+        hasNextPage: true;
+        lastCheckpointInPage: Checkpoint;
+      }
+    | {
+        hasNextPage: false;
+        lastCheckpointInPage: undefined;
+      }
+  )
+> => {
+  const jsonRpcPayload = {
+    id: "1",
+    method: "ponder_getLogEvents",
+    params: args,
+  };
+  const res = await customRpcClient!.post("/", jsonRpcPayload);
+  if (res.data.error) {
+    throw Error(res.data.error);
+  }
+  return res.data.result;
+};
+
+type GetEventsRequest = {
+  fromCheckpoint: Checkpoint;
+  toCheckpoint: Checkpoint;
+  limit: number;
+} & (
+  | {
+      logFilters: {
+        id: string;
+        chainId: number;
+        criteria: LogFilterCriteria;
+        fromBlock?: number;
+        toBlock?: number;
+        eventSelector: Hex;
+      }[];
+      factories?: undefined;
+    }
+  | {
+      logFilters?: undefined;
+      factories: {
+        id: string;
+        chainId: number;
+        criteria: FactoryCriteria;
+        fromBlock?: number;
+        toBlock?: number;
+        eventSelector: Hex;
+      }[];
+    }
+);
 
 type SyncGatewayEvents = {
   /**
@@ -128,6 +200,10 @@ export class SyncGateway extends Emittery<SyncGatewayEvents> {
         }
     ),
   ) {
+    if (customRpcClient) {
+      return callCustomRpc(arg);
+    }
+
     return this.syncStore.getLogEvents(arg);
   }
 
