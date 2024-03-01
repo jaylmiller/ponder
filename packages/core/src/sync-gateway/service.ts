@@ -214,7 +214,11 @@ export class SyncGateway extends Emittery<SyncGatewayEvents> {
       filename = `${filename}_${recordIndex}`;
       filename = `records/${filename}`;
       recordIndex += 1;
-      const toWrite = Buffer.from(JSON.stringify(record));
+      const toWrite = Buffer.from(
+        JSON.stringify(record, (_, v) =>
+          typeof v === "bigint" ? v.toString() : v,
+        ),
+      );
       console.log(`writing ${toWrite.length} bytes to ${recordIndex}`);
       await writeFile(filename, toWrite);
     };
