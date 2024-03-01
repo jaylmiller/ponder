@@ -1,5 +1,19 @@
 # @ponder/core
 
+## 0.2.12
+
+### Patch Changes
+
+- [#676](https://github.com/ponder-sh/ponder/pull/676) [`695fe00d0a630bab6835889d59221676519c1c87`](https://github.com/ponder-sh/ponder/commit/695fe00d0a630bab6835889d59221676519c1c87) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed a bug where paginated queries using `before` did not behave correctly.
+
+## 0.2.11
+
+### Patch Changes
+
+- [#672](https://github.com/ponder-sh/ponder/pull/672) [`3b50ef2891917e3af18f11f48fff9fe6a5f15545`](https://github.com/ponder-sh/ponder/commit/3b50ef2891917e3af18f11f48fff9fe6a5f15545) Thanks [@0xOlias](https://github.com/0xOlias)! - Increased default Postgres statement timeout.
+
+- [#669](https://github.com/ponder-sh/ponder/pull/669) [`41c72adec0c6c039f7e475d7e8aab8a5aa61651e`](https://github.com/ponder-sh/ponder/commit/41c72adec0c6c039f7e475d7e8aab8a5aa61651e) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed indexing service event ordering bug.
+
 ## 0.2.10
 
 ### Patch Changes
