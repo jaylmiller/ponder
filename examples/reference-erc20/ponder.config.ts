@@ -6,11 +6,13 @@ const endBlock = 5_395_000;
 const indexRange = 10_000;
 const chainId = 11155111; // sepolia
 // const syncToFile = "../../sync1.db";
-const syncToFile = "../../baseline";
+const syncToFile = "../../baseline2";
 console.log("syncing to", syncToFile);
 const network = "sepolia";
 // currently points to our full sepolia node
 const rpcUrl = "http://localhost:8545";
+const database = "baseline1";
+const pg = `postgres://postgres:password@localhost:5432/${database}`;
 export default createConfig({
   networks: {
     [network]: {
@@ -19,9 +21,9 @@ export default createConfig({
     },
   },
   database: {
-    kind: "sqlite",
+    kind: "postgres",
     /** Path to SQLite database file. Default: `".ponder/store"`. */
-    filename: syncToFile,
+    connectionString: pg,
   },
   contracts: {
     ERC20: {
